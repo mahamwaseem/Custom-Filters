@@ -2,21 +2,22 @@ const express = require('express');
 const Record = require('../models/record')
 const router = express.Router();
 
+//GET
 router.get("/", async (req, res) => {
-  try{
-    const{ firstName, date, value } = req.query; //for query string parameters (after ? in the URL, http://localhost:3000/search?firstName=Ali&date=2025-08-23&value=100).
+  try {
+    const { firstName, date, value } = req.query; //for query string parameters (after ? in the URL, http://localhost:3000/search?firstName=Ali&date=2025-08-23&value=100).
 
     let filter = {};
 
-    if(firstName){
-      filter.firstName = {$regex: new RegExp(firstName, 'i')}; // Matches String field to a pattern
+    if (firstName) {
+      filter.firstName = { $regex: new RegExp(firstName, 'i') }; // Matches String field to a pattern
     }
 
-    if(date) {
+    if (date) {
       filter.date = new Date(date);
     }
 
-    if(value) {
+    if (value) {
       filter.value = Number(value);
     }
 
@@ -29,8 +30,20 @@ router.get("/", async (req, res) => {
     });
   }
 
-  catch(err){
-    res.status(500).json({success: false, message: err.message});
+  catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+//POST
+router.post('/', async (req, res) => {
+  try {
+    const newRecord = new Record(req.body);
+    await newRecord.save();
+    res.status(201).json({ success: true, data: newRecord });
+  }
+  catch (err) {
+    res.status(500).json({ success: true, message: err.message });
   }
 });
 
