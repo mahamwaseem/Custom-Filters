@@ -2,6 +2,18 @@ const express = require('express');
 const Record = require('../models/record')
 const router = express.Router();
 
+//POST
+router.post('/', async (req, res) => {
+  try {
+    const newRecord = new Record(req.body);
+    await newRecord.save();
+    res.status(201).json({ success: true, data: newRecord });
+  }
+  catch (err) {
+    res.status(500).json({ success: true, message: err.message });
+  }
+});
+
 //GET
 router.get("/", async (req, res) => {
   try {
@@ -14,8 +26,14 @@ router.get("/", async (req, res) => {
     }
 
     if (date) {
-      filter.date = new Date(date);
-    }
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(date);
+  end.setHours(23, 59, 59, 999);
+
+  filter.date = { $gte: start, $lte: end };
+}
 
     if (value) {
       filter.value = Number(value);
@@ -35,16 +53,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-//POST
-router.post('/', async (req, res) => {
-  try {
-    const newRecord = new Record(req.body);
-    await newRecord.save();
-    res.status(201).json({ success: true, data: newRecord });
-  }
-  catch (err) {
-    res.status(500).json({ success: true, message: err.message });
-  }
-});
+
 
 module.exports = router;
