@@ -5,13 +5,28 @@ const router = express.Router();
 //POST
 router.post('/', async (req, res) => {
   try {
-    const newRecord = new Record(req.body);
+    const { firstName, date, value } = req.body;
+
+    if (!firstName || typeof firstName !== "string") {
+      return res.status(400).json({ success: false, message: "Invalid or missing firstName" });
+    }
+
+    if (!date || isNaN(new Date(date), getTime())) {
+      return res.status(400).json({ success: false, message: "Invalid or missing Date" });
+    }
+
+    if (value === undefined || isNaN(Number(value))) {
+      return res.status(400).json({ success: false, message: "Invalid or missing value" });
+    }
+
+    const newRecord = new Record({ firstName, date, value });
     await newRecord.save();
     res.status(201).json({ success: true, data: newRecord });
   }
   catch (err) {
-    res.status(500).json({ success: true, message: err.message });
+    res.status(400).json({ success: false, message: err.message });
   }
+
 });
 
 //GET
@@ -22,20 +37,30 @@ router.get("/", async (req, res) => {
     let filter = {};
 
     if (firstName) {
+      if (typeof firstName !== "string") {
+        return res.status(400).json({ success: false, message: "Invalid firstName format" });
+      }
       filter.firstName = { $regex: new RegExp(firstName, 'i') }; // Matches String field to a pattern
     }
 
     if (date) {
-  const start = new Date(date);
-  start.setHours(0, 0, 0, 0);
+      const parsedDate = new Date(date);
+      if(isNaN(parsedDate.getTime())){
+        return res.status(400). json({ success: false, message:"Invalid date format"});
+      }
+      const start = new Date(date);
+      start.setHours(0, 0, 0, 0);
 
-  const end = new Date(date);
-  end.setHours(23, 59, 59, 999);
+      const end = new Date(date);
+      end.setHours(23, 59, 59, 999);
 
-  filter.date = { $gte: start, $lte: end };
-}
+      filter.date = { $gte: start, $lte: end };
+    }
 
     if (value) {
+      if(isNaN(Number(value))){
+        return res.status(400).json({success: false, message: "Invalid value format"});
+      }
       filter.value = Number(value);
     }
 
